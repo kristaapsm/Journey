@@ -11,18 +11,19 @@ public class GunMechanic : MonoBehaviour
     public bool allowButtonHold;
     int bulletsLeft, bulletsShot;
 
-    //bools
+    //Bools for states
     bool shooting, readyToShoot, reloading;
 
-    //Referance
+    //References
     public Camera fpsCam;
     public Transform attackPoint;
     public RaycastHit rayHit;
     public LayerMask whatIsEnemy;
 
 
-    //Graphics
-    public GameObject muzzleFlash, bulletHoleGraphic;
+    //Graphics (muzzlelfash bulletholes and hud)
+    public GameObject muzzleFlash;
+    public GameObject bulletHoleGraphic;
     public TextMeshProUGUI text;
 
     private void Awake()
@@ -54,6 +55,7 @@ public class GunMechanic : MonoBehaviour
     private void Shoot()
     {
         readyToShoot = false;
+       
         Debug.Log("shooting");
         //Spread
         float x = Random.Range(-spread, spread);
@@ -62,20 +64,42 @@ public class GunMechanic : MonoBehaviour
         //Calculate Direction with Spread
         Vector3 direction = fpsCam.transform.forward + new Vector3(x, y, 0);
 
+       
+
         if (Physics.Raycast(fpsCam.transform.position, direction, out rayHit, range, whatIsEnemy))
         {
             Debug.Log(rayHit.collider.name);
         }
 
+        HandleMuzzleFlash();
         //Graphics
-        Instantiate(bulletHoleGraphic, rayHit.point, Quaternion.Euler(0, 180, 0));
-        Instantiate(muzzleFlash, attackPoint.position, Quaternion.identity);
+
+        Vector3 playerToHit = fpsCam.transform.position - rayHit.point;
+        Quaternion rotation = Quaternion.LookRotation(playerToHit, Vector3.up);
+        Instantiate(bulletHoleGraphic, rayHit.point + (rayHit.normal * .01f), rotation);
+
+
+        //Instantiate(muzzleFlash, attackPoint.transform.position, attackPoint.transform.rotation);
+
+        //Instantiate(bulletHoleGraphic, rayHit.point, Quaternion.Euler(0, 180, 0));
+        //Instantiate(muzzleFlash, attackPoint.position, Quaternion.identity);
         bulletsLeft--;
         bulletsShot--;
         Invoke("ResetShot", timeBetweenShooting);
 
         if (bulletsShot > 0 && bulletsLeft > 0)
             Invoke("Shoot", timeBetweenShots);
+    }
+
+
+    private void HandleMuzzleFlash()
+    {
+        if (muzzleFlash != null)
+        {
+            GameObject flash = Instantiate(muzzleFlash, attackPoint.position, attackPoint.rotation);
+            flash.transform.parent = attackPoint;
+            Destroy(flash, 0.05f);
+        }
     }
 
     private void ResetShot()
@@ -85,7 +109,7 @@ public class GunMechanic : MonoBehaviour
     private void Reload()
     {
         reloading = true;
-        Invoke("ReloadFinised", reloadTime);
+        Invoke("ReloadFinished", reloadTime);
 
     }
 
