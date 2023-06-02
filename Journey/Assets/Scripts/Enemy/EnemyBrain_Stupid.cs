@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using CodeMonkey.HealthSystemCM;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -18,6 +19,11 @@ public class EnemyBrain_Stupid : MonoBehaviour
     private bool isWalking = false;
     private bool isRunning = false;
     private bool isAiming = false;
+
+    // Shooting
+    public float shootingInterval = 1f;
+    private bool canShoot = true;
+    private float shootingTimer = 0f;
 
     // Patrolling
     public float patrolRadius = 10f;
@@ -61,6 +67,13 @@ public class EnemyBrain_Stupid : MonoBehaviour
                         isWalking = false;
                         isRunning = false;
                         isAiming = true;
+
+                        if (canShoot && animator.GetCurrentAnimatorStateInfo(0).IsName("PistolAim"))
+                        {
+                            Shoot();
+                            canShoot = false;
+                            shootingTimer = 0f;
+                        }
                     }
                     else
                     {
@@ -101,6 +114,16 @@ public class EnemyBrain_Stupid : MonoBehaviour
             // Update speed animator parameter
             animator.SetFloat("speed", enemyReferences.navMeshAgent.desiredVelocity.sqrMagnitude);
         }
+
+        // Update shooting timer
+        if (!canShoot)
+        {
+            shootingTimer += Time.deltaTime;
+            if (shootingTimer >= shootingInterval)
+            {
+                canShoot = true;
+            }
+        }
     }
 
     public void Die()
@@ -116,29 +139,16 @@ public class EnemyBrain_Stupid : MonoBehaviour
     {
         isPatrolling = true;
         enemyReferences.navMeshAgent.SetDestination(patrolDestination);
+        enemyReferences.navMeshAgent.isStopped = false;
     }
 
     private void SetRandomPatrolDestination()
     {
-        isPatrolling = false;
         Vector3 randomDirection = Random.insideUnitSphere * patrolRadius;
         randomDirection += transform.position;
-        NavMeshHit navMeshHit;
-        NavMesh.SamplePosition(randomDirection, out navMeshHit, patrolRadius, -1);
-        patrolDestination = navMeshHit.position;
-    }
-
-    private void ChaseTarget()
-    {
-        enemyReferences.navMeshAgent.SetDestination(target.position);
-    }
-
-    private void LookAtTarget()
-    {
-        Vector3 lookDirection = target.position - transform.position;
-        lookDirection.y = 0f;
-        Quaternion rotation = Quaternion.LookRotation(lookDirection);
-        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * enemyReferences.rotationSpeed);
+        NavMeshHit navHit;
+        NavMesh.SamplePosition(randomDirection, out navHit, patrolRadius, -1);
+        patrolDestination = navHit.position;
     }
 
     private void SetRigidbodyState(bool state)
@@ -148,7 +158,6 @@ public class EnemyBrain_Stupid : MonoBehaviour
         {
             rb.isKinematic = state;
         }
-        GetComponent<Rigidbody>().isKinematic = !state;
     }
 
     private void SetColliderState(bool state)
@@ -158,11 +167,39 @@ public class EnemyBrain_Stupid : MonoBehaviour
         {
             col.enabled = state;
         }
-        GetComponent<Collider>().enabled = !state;
     }
 
     private void SetNavAgentState(bool state)
     {
         enemyReferences.navMeshAgent.enabled = state;
     }
+
+    private void ChaseTarget()
+    {
+        enemyReferences.navMeshAgent.SetDestination(target.position);
+        enemyReferences.navMeshAgent.isStopped = false;
+    }
+
+    private void LookAtTarget()
+    {
+        Vector3 direction = (target.position - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0f, direction.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * enemyReferences.rotationSpeed);
+    }
+
+    private void Shoot()
+    {
+        // Reduce the target's health by 10 using the HealthSystem
+        HealthSystemComponent targetHealthSystem;
+        if (target.TryGetComponent(out targetHealthSystem))
+        {
+            HealthSystem healthSystem = targetHealthSystem.GetHealthSystem();
+            healthSystem.Damage(10);
+            if (healthSystem.GetHealth() <= 0)
+            {
+                Destroy(target.gameObject);
+            }
+        }
+    }
+
 }

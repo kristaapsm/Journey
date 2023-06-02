@@ -30,11 +30,12 @@ public class GunMechanic : MonoBehaviour
     {
         bulletsLeft = magazineSize;
         readyToShoot = true;
-        //text.SetText(bulletsLeft + "/ " + magazineSize);
+        text.SetText(bulletsLeft + "/ " + magazineSize);
     }
     private void Update()
     {
         MyInput();
+        text.SetText(bulletsLeft + " / " + magazineSize);
     }
     private void MyInput()
     {
@@ -80,11 +81,6 @@ public class GunMechanic : MonoBehaviour
         Quaternion rotation = Quaternion.LookRotation(playerToHit, Vector3.up);
         Instantiate(bulletHoleGraphic, rayHit.point + (rayHit.normal * .01f), rotation);
 
-
-        //Instantiate(muzzleFlash, attackPoint.transform.position, attackPoint.transform.rotation);
-
-        //Instantiate(bulletHoleGraphic, rayHit.point, Quaternion.Euler(0, 180, 0));
-        //Instantiate(muzzleFlash, attackPoint.position, Quaternion.identity);
         bulletsLeft--;
         bulletsShot--;
         Invoke("ResetShot", timeBetweenShooting);

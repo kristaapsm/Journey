@@ -22,6 +22,9 @@ namespace CodeMonkey.HealthSystemCM {
     /// </summary>
     public class HealthSystem {
 
+        public event EventHandler OnDeath;
+
+
         public event EventHandler OnHealthChanged;
         public event EventHandler OnHealthMaxChanged;
         public event EventHandler OnDamaged;
@@ -63,15 +66,19 @@ namespace CodeMonkey.HealthSystemCM {
         /// <summary>
         /// Deal damage to this HealthSystem
         /// </summary>
-        public void Damage(float amount) {
+        public void Damage(float amount)
+        {
             health -= amount;
-            if (health < 0) {
+            if (health < 0)
+            {
                 health = 0;
             }
+
             OnHealthChanged?.Invoke(this, EventArgs.Empty);
             OnDamaged?.Invoke(this, EventArgs.Empty);
 
-            if (health <= 0) {
+            if (health <= 0)
+            {
                 Die();
             }
         }
@@ -79,9 +86,11 @@ namespace CodeMonkey.HealthSystemCM {
         /// <summary>
         /// Kill this HealthSystem
         /// </summary>
-        public void Die() {
-            OnDead?.Invoke(this, EventArgs.Empty);
+        private void Die()
+        {
+            OnDeath?.Invoke(this, EventArgs.Empty);
         }
+
 
         /// <summary>
         /// Test if this Health System is dead
@@ -136,6 +145,7 @@ namespace CodeMonkey.HealthSystemCM {
             OnHealthChanged?.Invoke(this, EventArgs.Empty);
 
             if (health <= 0) {
+                Debug.Log("Player should die");
                 Die();
             }
         }
