@@ -6,15 +6,15 @@ using UnityEngine.AI;
 public class EnemyBrain_Stupid : MonoBehaviour
 {
     public Transform target;
-    private EnemyRefrences enemyRefrences;
+    private EnemyReferences enemyReferences;
     private float pathUpdateDeadline;
     public float detectionRange = 10f;
     public float shootingRange = 5f;
     private bool isDead = false;
     private EnemyController enemyController;
+    private Animator animator;
 
     // Animator Parameters
-    private Animator animator;
     private bool isWalking = false;
     private bool isRunning = false;
     private bool isAiming = false;
@@ -26,7 +26,7 @@ public class EnemyBrain_Stupid : MonoBehaviour
 
     private void Awake()
     {
-        enemyRefrences = GetComponent<EnemyRefrences>();
+        enemyReferences = GetComponent<EnemyReferences>();
         animator = GetComponent<Animator>();
     }
 
@@ -80,7 +80,7 @@ public class EnemyBrain_Stupid : MonoBehaviour
                     else
                     {
                         // Check if the destination is reached
-                        if (enemyRefrences.navMeshagent.remainingDistance <= enemyRefrences.navMeshagent.stoppingDistance)
+                        if (enemyReferences.navMeshAgent.remainingDistance <= enemyReferences.navMeshAgent.stoppingDistance)
                         {
                             SetRandomPatrolDestination();
                         }
@@ -99,19 +99,23 @@ public class EnemyBrain_Stupid : MonoBehaviour
             }
 
             // Update speed animator parameter
-            enemyRefrences.animator.SetFloat("speed", enemyRefrences.navMeshagent.desiredVelocity.sqrMagnitude);
+            animator.SetFloat("speed", enemyReferences.navMeshAgent.desiredVelocity.sqrMagnitude);
         }
     }
 
     public void Die()
     {
         isDead = true;
+        animator.enabled = false;
+        SetRigidbodyState(false);
+        SetColliderState(true);
+        SetNavAgentState(false);
     }
 
     private void StartPatrolling()
     {
         isPatrolling = true;
-        enemyRefrences.navMeshagent.SetDestination(patrolDestination);
+        enemyReferences.navMeshAgent.SetDestination(patrolDestination);
     }
 
     private void SetRandomPatrolDestination()
@@ -126,8 +130,7 @@ public class EnemyBrain_Stupid : MonoBehaviour
 
     private void ChaseTarget()
     {
-        isPatrolling = false;
-        enemyRefrences.navMeshagent.SetDestination(target.position);
+        enemyReferences.navMeshAgent.SetDestination(target.position);
     }
 
     private void LookAtTarget()
@@ -135,6 +138,31 @@ public class EnemyBrain_Stupid : MonoBehaviour
         Vector3 lookDirection = target.position - transform.position;
         lookDirection.y = 0f;
         Quaternion rotation = Quaternion.LookRotation(lookDirection);
-        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * 5f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * enemyReferences.rotationSpeed);
+    }
+
+    private void SetRigidbodyState(bool state)
+    {
+        Rigidbody[] rigidbodies = GetComponentsInChildren<Rigidbody>();
+        foreach (Rigidbody rb in rigidbodies)
+        {
+            rb.isKinematic = state;
+        }
+        GetComponent<Rigidbody>().isKinematic = !state;
+    }
+
+    private void SetColliderState(bool state)
+    {
+        Collider[] colliders = GetComponentsInChildren<Collider>();
+        foreach (Collider col in colliders)
+        {
+            col.enabled = state;
+        }
+        GetComponent<Collider>().enabled = !state;
+    }
+
+    private void SetNavAgentState(bool state)
+    {
+        enemyReferences.navMeshAgent.enabled = state;
     }
 }

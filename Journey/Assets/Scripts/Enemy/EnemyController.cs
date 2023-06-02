@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class EnemyController : MonoBehaviour
 {
-    public EnemyBrain_Stupid enemyBrain;
+    private EnemyBrain_Stupid enemyBrain;
 
     private bool isDead = false; // Add a flag to track the AI's death
 
