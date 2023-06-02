@@ -4,15 +4,19 @@ using UnityEngine;
 
 public class AICharacter : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private AIManager aiManager;
+
+    private void Start()
     {
-        
+        // Get reference to the AIManager script
+        aiManager = GameObject.FindObjectOfType<AIManager>();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void Die()
     {
-        
+        // Handle AI death logic
+
+        // Call the DecreaseAICount() method in AIManager script
+        aiManager.DecreaseAICount();
     }
 }

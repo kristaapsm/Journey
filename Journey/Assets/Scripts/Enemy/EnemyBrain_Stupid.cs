@@ -30,6 +30,7 @@ public class EnemyBrain_Stupid : MonoBehaviour
     private Vector3 patrolDestination;
     private bool isPatrolling = false;
 
+    public AIManager aiManager;
     private void Awake()
     {
         enemyReferences = GetComponent<EnemyReferences>();
@@ -133,6 +134,11 @@ public class EnemyBrain_Stupid : MonoBehaviour
         SetRigidbodyState(false);
         SetColliderState(true);
         SetNavAgentState(false);
+
+        if (aiManager != null)
+        {
+            aiManager.DecreaseAICount();
+        }
     }
 
     private void StartPatrolling()

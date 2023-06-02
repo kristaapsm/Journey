@@ -8,6 +8,7 @@ TagManager:
   - WhatIsGround
   - WhatIsPlayer
   - PatrolPoint
+  - AI
   layers:
   - Default
   - TransparentFX
