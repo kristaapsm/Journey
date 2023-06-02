@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - attackPoint
+  - WhatIsGround
+  - WhatIsPlayer
+  - PatrolPoint
   layers:
   - Default
   - TransparentFX

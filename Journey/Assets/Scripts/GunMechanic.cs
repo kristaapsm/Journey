@@ -43,7 +43,7 @@ public class GunMechanic : MonoBehaviour
         else shooting = Input.GetKeyDown(KeyCode.Mouse0);
 
         //reloading
-        if (Input.GetKeyDown(KeyCode.R) && bulletsLeft < magazineSize && !reloading) Reload();
+        if (Input.GetKeyDown(KeyCode.R) && bulletsLeft < magazineSize && !reloading) StartReload();
 
         //shoot
         if(readyToShoot && shooting && !reloading && bulletsLeft > 0)
@@ -68,7 +68,9 @@ public class GunMechanic : MonoBehaviour
 
         if (Physics.Raycast(fpsCam.transform.position, direction, out rayHit, range, whatIsEnemy))
         {
-            Debug.Log(rayHit.collider.name);
+            //Debug.Log(rayHit.collider.name);
+            IDamageable damageable = rayHit.transform.GetComponent<IDamageable>();
+            damageable?.TakeDamage(damage);
         }
 
         HandleMuzzleFlash();
@@ -106,15 +108,20 @@ public class GunMechanic : MonoBehaviour
     {
         readyToShoot = true;
     }
-    private void Reload()
+    
+    public void StartReload()
     {
-        reloading = true;
-        Invoke("ReloadFinished", reloadTime);
-
+        if (!reloading)
+        {
+            StartCoroutine(Reload());
+        }
     }
 
-    private void ReloadFinished()
+    //korutina
+    private IEnumerator Reload()
     {
+        reloading = true;
+        yield return new WaitForSeconds(reloadTime);
         bulletsLeft = magazineSize;
         reloading = false;
     }
